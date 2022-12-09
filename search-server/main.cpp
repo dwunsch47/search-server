@@ -107,6 +107,8 @@ void TestDocumentRating() {
     const int id = 11;
     const string content = "hewwo wowld uwu"s;
     const vector<int> ratings = { 1, 3 };
+    const vector<int> negative_ratings = { -1, -2, -3 };
+    const vector<int> mixed_ratings = { -1, 1, 3 };
     {
         SearchServer server;
         server.AddDocument(id, content, DocumentStatus::ACTUAL, ratings);
