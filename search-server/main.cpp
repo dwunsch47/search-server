@@ -110,9 +110,15 @@ void TestDocumentRating() {
     {
         SearchServer server;
         server.AddDocument(id, content, DocumentStatus::ACTUAL, ratings);
+        server.AddDocument(id2, content, DocumentStatus::ACTUAL, negative_ratings);
+        server.AddDocument(id3, content, DocumentStatus::ACTUAL, mixed_ratings);
         const auto found = server.FindTopDocuments("uwu"s);
         const Document& doc = found[0];
+        const Document& doc2 = found[1];
+        const Document& doc3 = found[2];
         ASSERT_EQUAL(doc.rating, 2);
+        ASSERT_EQUAL(doc2.rating, 1);
+        ASSERT_EQUAL(doc3.rating, -2);
     }
 }
 
