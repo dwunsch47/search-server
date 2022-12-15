@@ -24,6 +24,50 @@ int ReadLineWithNumber() {
     return result;
 }
 
+static bool IsValidWord(const string& word) {
+    // A valid word must not contain special characters
+    return none_of(word.begin(), word.end(), [](char c) {
+        return c >= '\0' && c < ' ';
+        });
+}
+
+vector<string> SplitIntoWords(const string& text) {
+    vector<string> words;
+    string word;
+    for (const char c : text) {
+        if (c == ' ') {
+            if (!word.empty()) {
+                if (!IsValidWord(word)) {
+                    throw invalid_argument("string has unacceptable symbols"s);
+                }
+                words.push_back(word);
+                word.clear();
+            }
+        }
+        else {
+            word += c;
+        }
+    }
+    if (!word.empty()) {
+        words.push_back(word);
+    }
+    return words;
+}
+
+template <typename StringContainer>
+set<string> MakeUniqueNonEmptyStrings(const StringContainer& strings) {
+    set<string> non_empty_strings;
+    for (const string& str : strings) {
+        if (!IsValidWord(str)) {
+            throw invalid_argument("string has unacceptable symbols"s);
+        }
+        if (!str.empty()) {
+            non_empty_strings.insert(str);
+        }
+    }
+    return non_empty_strings;
+}
+
 struct Document {
     Document() = default;
 
@@ -60,8 +104,8 @@ public:
 
     void AddDocument(int document_id, const string& document, DocumentStatus status,
         const vector<int>& ratings) {
-        vector<string> words;
-        if (document_id < 0 || documents_.count(document_id) || !SplitIntoWordsNoStop(document, words)) {
+        const vector<string> words = SplitIntoWordsNoStop(document);
+        if (document_id < 0 || documents_.count(document_id)) {
             throw invalid_argument("Document has incorrect data"s);
         }
         const double inv_word_count = 1.0 / words.size();
@@ -69,6 +113,7 @@ public:
             word_to_document_freqs_[word][document_id] += inv_word_count;
         }
         documents_.emplace(document_id, DocumentData{ ComputeAverageRating(ratings), status });
+        ordered_ids_.push_back(document_id);
     }
 
     template <typename DocumentPredicate>
@@ -132,16 +177,7 @@ public:
     }
 
     int GetDocumentId(int index) const {
-        if (!(index > (GetDocumentCount() - 1) && index < 0)) {
-            int counter = 0;
-            for (const auto& [id, _] : documents_) {
-                if (counter == index) {
-                    return id;
-                }
-                ++counter;
-            }
-        }
-        throw out_of_range("index is out of range"s);
+        return ordered_ids_.at(index);
     }
 
 private:
@@ -152,65 +188,23 @@ private:
     const set<string> stop_words_;
     map<string, map<int, double>> word_to_document_freqs_;
     map<int, DocumentData> documents_;
-
-    static bool IsValidWord(const string& word) {
-        // A valid word must not contain special characters
-        return none_of(word.begin(), word.end(), [](char c) {
-            return c >= '\0' && c < ' ';
-            });
-    }
-
-    vector<string> SplitIntoWords(const string& text) const {
-        vector<string> words;
-        string word;
-        for (const char c : text) {
-            if (c == ' ') {
-                if (!word.empty()) {
-                    if (!IsValidWord(word)) {
-                        throw invalid_argument("string has unacceptable symbols"s);
-                    }
-                    words.push_back(word);
-                    word.clear();
-                }
-            }
-            else {
-                word += c;
-            }
-        }
-        if (!word.empty()) {
-            words.push_back(word);
-        }
-        return words;
-    }
-
-    template <typename StringContainer>
-    set<string> MakeUniqueNonEmptyStrings(const StringContainer& strings) const {
-        set<string> non_empty_strings;
-        for (const string& str : strings) {
-            if (!IsValidWord(str)) {
-                throw invalid_argument("string has unacceptable symbols"s);
-            }
-            if (!str.empty()) {
-                non_empty_strings.insert(str);
-            }
-        }
-        return non_empty_strings;
-    }
+    vector<int> ordered_ids_;
 
     bool IsStopWord(const string& word) const {
         return stop_words_.count(word) > 0;
     }
 
-    bool SplitIntoWordsNoStop(const string& text, vector<string>& words) const {
+    vector<string> SplitIntoWordsNoStop(const string& text) const {
+        vector<string> words;
         for (const string& word : SplitIntoWords(text)) {
             if (!IsValidWord(word)) {
-                return false;
+                throw invalid_argument("string containts invalid symbols"s);
             }
             if (!IsStopWord(word)) {
                 words.push_back(word);
             }
         }
-        return true;
+        return words;
     }
 
     static int ComputeAverageRating(const vector<int>& ratings) {
