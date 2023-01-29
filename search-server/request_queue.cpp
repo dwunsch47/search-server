@@ -39,4 +39,4 @@ int RequestQueue::GetNoResultRequests() const {
             }
             return false;
         });
-    }
+}
