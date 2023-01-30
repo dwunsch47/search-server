@@ -9,6 +9,7 @@
 
 #include "string_processing.h"
 #include "document.h"
+#include "log_duration.h"
 
 const int MAX_RESULT_DOCUMENT_COUNT = 5;
 const double EPSILON = 1e-6;
@@ -81,14 +82,14 @@ template <typename StringContainer>
 SearchServer::SearchServer(const StringContainer& stop_words)
     : stop_words_(MakeUniqueNonEmptyStrings(stop_words)) {
     if (!all_of(stop_words_.begin(), stop_words_.end(), IsValidWord)) {
-        using namespace std;
-        throw invalid_argument("Some of stop words are invalid"s);
+        throw std::invalid_argument("Some of stop words are invalid");
     }
 }
 
 template <typename DocumentPredicate>
 std::vector<Document> SearchServer::FindTopDocuments(const std::string& raw_query,
                                   DocumentPredicate document_predicate) const {
+    LOG_DURATION_STREAM("Long Stream", std::cerr);
     const auto query = ParseQuery(raw_query);
 
     auto matched_documents = FindAllDocuments(query, document_predicate);

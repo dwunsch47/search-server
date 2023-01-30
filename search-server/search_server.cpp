@@ -44,6 +44,7 @@ int SearchServer::GetDocumentId(int index) const {
 
 tuple<vector<string>, DocumentStatus> SearchServer::MatchDocument(const string& raw_query,
                                                         int document_id) const {
+    LOG_DURATION_STREAM("Long Stream", cout);
     const auto query = ParseQuery(raw_query);
 
     vector<string> matched_words;
