@@ -146,7 +146,7 @@ double SearchServer::ComputeWordInverseDocumentFreq(const string& word) const {
 
 const map<string, double>& SearchServer::GetWordFrequencies(int document_id) const {
     static map<string, double> empty;
-    if (!document_ids_.count(document_id)) {
+    if (document_ids_.find(document_id) == document_ids_.end()) {
         return empty;
     }
     return id_to_word_freqs_.at(document_id);
@@ -156,7 +156,10 @@ void SearchServer::RemoveDocument(int document_id) {
     documents_.erase(document_id);
     document_ids_.erase(document_id);
     id_to_word_freqs_.erase(document_id);
-    for (auto [key, val] : word_to_document_freqs_) {
-        val.erase(document_id);
+    for (auto [word, freq] : GetWordFrequencies(document_id)) {
+        auto it = word_to_document_freqs_[word].find(document_id);
+        if (it != word_to_document_freqs_[word].end()) {
+            word_to_document_freqs_[word].erase(it);
+        }
     }
 }

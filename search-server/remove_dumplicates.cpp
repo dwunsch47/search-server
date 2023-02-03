@@ -14,10 +14,10 @@ void RemoveDuplicates(SearchServer& search_server) {
 	for (const int document_id : search_server) {
 		set<string> current_id_words;
 		map<string, double> current_id_to_word_freq = search_server.GetWordFrequencies(document_id);
-		for (auto&& [word, freq] : current_id_to_word_freq) {
-			current_id_words.insert(word);
-		}
-		if (document_keeper.count(current_id_words) == 0) {
+		transform(current_id_to_word_freq.begin(), current_id_to_word_freq.end(), inserter(current_id_words, current_id_words.begin()), [](const auto& element) {
+			return element.first;
+			});
+		if (document_keeper.find(current_id_words) == document_keeper.end()) {
 			document_keeper.insert(current_id_words);
 		}
 		else {
