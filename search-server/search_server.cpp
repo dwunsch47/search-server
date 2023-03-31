@@ -1,4 +1,4 @@
-﻿#include <cmath>
+#include <cmath>
 #include <numeric>
 #include <vector>
 #include <tuple>
@@ -32,8 +32,20 @@ void SearchServer::AddDocument(int document_id, string_view document, DocumentSt
     document_ids_.insert(document_id);
 }
 
+
 vector<Document> SearchServer::FindTopDocuments(const string_view raw_query, DocumentStatus status) const {
     return FindTopDocuments(
+        raw_query, [status](int document_id, DocumentStatus document_status, int rating) {
+            return document_status == status;
+        });
+}
+
+vector<Document> SearchServer::FindTopDocuments(const execution::sequenced_policy&, const string_view raw_query, DocumentStatus status) const {
+    return FindTopDocuments(raw_query, status);
+}
+
+vector<Document> SearchServer::FindTopDocuments(const execution::parallel_policy&, const string_view raw_query, DocumentStatus status) const {
+    return FindTopDocuments(execution::par, 
         raw_query, [status](int document_id, DocumentStatus document_status, int rating) {
             return document_status == status;
         });
@@ -42,6 +54,15 @@ vector<Document> SearchServer::FindTopDocuments(const string_view raw_query, Doc
 vector<Document> SearchServer::FindTopDocuments(const string_view raw_query) const {
     return FindTopDocuments(raw_query, DocumentStatus::ACTUAL);
 }
+
+vector<Document> SearchServer::FindTopDocuments(const execution::sequenced_policy&, const string_view raw_query) const {
+    return FindTopDocuments(raw_query, DocumentStatus::ACTUAL);
+}
+
+vector<Document> SearchServer::FindTopDocuments(const execution::parallel_policy&, const string_view raw_query) const {
+    return FindTopDocuments(execution::par, raw_query, DocumentStatus::ACTUAL);
+}
+
 
 set<int>::const_iterator SearchServer::begin() const {
     return document_ids_.begin();
