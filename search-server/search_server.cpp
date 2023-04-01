@@ -34,7 +34,7 @@ void SearchServer::AddDocument(int document_id, string_view document, DocumentSt
 
 
 vector<Document> SearchServer::FindTopDocuments(const string_view raw_query, DocumentStatus status) const {
-    return FindTopDocuments(
+    return FindTopDocuments(execution::seq, 
         raw_query, [status](int document_id, DocumentStatus document_status, int rating) {
             return document_status == status;
         });
@@ -52,11 +52,11 @@ vector<Document> SearchServer::FindTopDocuments(const execution::parallel_policy
 }
 
 vector<Document> SearchServer::FindTopDocuments(const string_view raw_query) const {
-    return FindTopDocuments(raw_query, DocumentStatus::ACTUAL);
+    return FindTopDocuments(execution::seq, raw_query, DocumentStatus::ACTUAL);
 }
 
 vector<Document> SearchServer::FindTopDocuments(const execution::sequenced_policy&, const string_view raw_query) const {
-    return FindTopDocuments(raw_query, DocumentStatus::ACTUAL);
+    return FindTopDocuments(execution::seq, raw_query, DocumentStatus::ACTUAL);
 }
 
 vector<Document> SearchServer::FindTopDocuments(const execution::parallel_policy&, const string_view raw_query) const {
