@@ -7,7 +7,7 @@ Simple search server with ranking system
 
 ## `SearchServer`
 - `SearchServer` constructor takes a string-type containter containing stop words which are ignored during "Document" parsing
-"Document" is an internal data type used to store files for later search through
+- "Document" is an internal data type used to store files for later search through
 
 
 ## `AddDocument`
